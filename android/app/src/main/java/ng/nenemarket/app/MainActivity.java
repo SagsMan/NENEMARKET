@@ -112,34 +112,24 @@ public class MainActivity extends BridgeActivity {
                 String js =
                     "(function() {" +
 
-                    // ── CSS: inject once per page (fast-path: re-run fixAll if already injected) ──
-                    "  var existingStyle = document.getElementById('__nene_custom_css__');" +
-                    "  if (!existingStyle) {" +
+                    // ── CSS: inject once per page ──────────────────────────────
+                    "  if (!document.getElementById('__nene_custom_css__')) {" +
                     "    var style = document.createElement('style');" +
                     "    style.id = '__nene_custom_css__';" +
                     "    style.textContent = '" +
                     // Padding so content never hides behind the bottom nav bar
                     "    body, html { padding-bottom: 100px !important; margin-bottom: 0 !important; } " +
-                    "    main, #main, .main, [class*=\"page-wrap\"]," +
-                    "    [class*=\"page-content\"], .container, .container-fluid" +
-                    "    { margin-bottom: 100px !important; } " +
-                    // CSS-level hide for the black footer — instant, before JS runs
-                    "    footer, #footer, .footer, [class*=\"footer\"], [id*=\"footer\"]," +
-                    "    #bottom, .bottom-section, [class*=\"bottom-bar\"]," +
-                    "    .app-links, [class*=\"app-link\"], [class*=\"store-btn\"]" +
-                    "    { display: none !important; visibility: hidden !important; height: 0 !important;" +
-                    "      overflow: hidden !important; pointer-events: none !important; } " +
+                    "    main, #main, .main { margin-bottom: 100px !important; } " +
                     "  ';" +
                     "    document.head.appendChild(style);" +
                     "  }" +
 
                     "  function fixAll() {" +
 
-                    // ── 1. Remove by tag / class / id ──────────────────────────
-                    "    var sel = 'footer, #footer, .footer, [class*=\"footer\"], [id*=\"footer\"]," +
-                    "               #bottom, .bottom-section, [class*=\"bottom-bar\"]," +
-                    "               .app-links, [class*=\"app-link\"], [class*=\"store-btn\"]';" +
-                    "    document.querySelectorAll(sel).forEach(function(el){ el.remove(); });" +
+                    // ── 1. Remove only the real <footer> HTML tag ───────────────
+                    // Do NOT use wildcard class selectors — they catch action bars
+                    // and the Continue button's sticky container
+                    "    document.querySelectorAll('footer').forEach(function(el){ el.remove(); });" +
 
                     // ── 2. Remove App Store / Play Store links (whole parent card) ──
                     "    var storeSel = 'a[href*=\"play.google\"], a[href*=\"apps.apple\"]," +
