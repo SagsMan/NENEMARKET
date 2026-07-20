@@ -126,55 +126,27 @@ public class MainActivity extends BridgeActivity {
 
                     "  function fixAll() {" +
 
-                    // ── 1. Remove only the real <footer> HTML tag ───────────────
-                    // Do NOT use wildcard class selectors — they catch action bars
-                    // and the Continue button's sticky container
+                    // ── 1. Remove <footer> HTML tag — safe, never a button wrapper ─
                     "    document.querySelectorAll('footer').forEach(function(el){ el.remove(); });" +
 
-                    // ── 2. Remove App Store / Play Store links (whole parent card) ──
-                    "    var storeSel = 'a[href*=\"play.google\"], a[href*=\"apps.apple\"]," +
-                    "                   a[href*=\"apple.com/app\"], [class*=\"google-play\"]," +
-                    "                   [class*=\"app-store\"], img[alt*=\"Play Store\"]," +
-                    "                   img[alt*=\"App Store\"]';" +
-                    "    document.querySelectorAll(storeSel).forEach(function(el){" +
-                    "      var p = el.parentNode;" +
-                    "      el.remove();" +
-                    "      if (p && p.children && p.children.length === 0) p.remove();" +
-                    "    });" +
-
-                    // ── 3. Remove by footer keyword text ──────────────────────
-                    // Single strong keyword → remove element if it is a sizeable block
-                    "    var strongKw = ['all rights reserved','privacy policy'," +
+                    // ── 2. Keyword scan — ONLY on footer/nav/section/aside ────────
+                    // Deliberately excludes 'div' so we never accidentally remove
+                    // a page wrapper div that contains the Continue button somewhere.
+                    // Height cap of 250px stops us removing tall page sections that
+                    // merely contain a footer keyword deep inside them.
+                    "    var footerKw = ['all rights reserved','privacy policy'," +
                     "                    'terms & conditions','terms and conditions'," +
-                    "                    'cookie policy','billing policy','we are hiring'," +
-                    "                    'download our app','follow us on','quick links'];" +
-                    // Two or more of these → also remove
-                    "    var multiKw  = ['about us','about nenemarket','google play','app store'," +
-                    "                    'copyright','nenemarket. all rights','nenemarket.ng'];" +
-                    "    document.querySelectorAll('footer, section, div, nav, aside, ul').forEach(function(el) {" +
+                    "                    'cookie policy'];" +
+                    "    document.querySelectorAll('footer, nav, aside, section').forEach(function(el) {" +
                     "      if (!el.parentNode) return;" +
-                    "      var txt = (el.innerText || '').toLowerCase().trim();" +
-                    "      if (!txt) return;" +
-                    "      for (var i = 0; i < strongKw.length; i++) {" +
-                    "        if (txt.indexOf(strongKw[i]) !== -1 && el.clientHeight > 20) {" +
-                    "          el.remove(); return;" +
-                    "        }" +
+                    "      if (el.clientHeight > 250) return;" +
+                    "      var txt = (el.innerText || '').toLowerCase();" +
+                    "      for (var i = 0; i < footerKw.length; i++) {" +
+                    "        if (txt.indexOf(footerKw[i]) !== -1) { el.remove(); return; }" +
                     "      }" +
-                    "      var hits = 0;" +
-                    "      multiKw.forEach(function(kw){ if (txt.indexOf(kw) !== -1) hits++; });" +
-                    "      if (hits >= 2 && el.clientHeight > 30) { el.remove(); return; }" +
                     "    });" +
 
-                    // ── 4. Keep category / filter bars visible ─────────────────
-                    "    ['.filter-bar','.filter-section','.filters','.category-filter'," +
-                    "     '[class*=\"filter\"]','.brand-filter','[class*=\"subcategor\"]'].forEach(function(s){" +
-                    "      try { document.querySelectorAll(s).forEach(function(el){" +
-                    "        el.style.setProperty('display','','important');" +
-                    "        el.style.setProperty('visibility','visible','important');" +
-                    "      }); } catch(e) {}" +
-                    "    });" +
-
-                    // ── 6. Fix any stale hostingersite links ───────────────────
+                    // ── 3. Fix stale hostingersite links ──────────────────────────
                     "    document.querySelectorAll('a[href]').forEach(function(a) {" +
                     "      var h = a.getAttribute('href') || '';" +
                     "      if (h.indexOf('hostingersite.com') !== -1 || h.indexOf('darkgreen-goshawk') !== -1) {" +
