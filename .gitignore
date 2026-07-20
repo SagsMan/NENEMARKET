@@ -1,0 +1,15 @@
+attached_assets/
+extracted_images/
+extracted_new_code/
+android/.gradle/
+android/.idea/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+android/build-error.txt
+android/capacitor-cordova-android-plugins/build/
+*.zip
+*.apk
+node_modules/
+.DS_Store
