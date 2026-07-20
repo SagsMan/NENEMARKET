@@ -112,24 +112,28 @@ public class MainActivity extends BridgeActivity {
                 String js =
                     "(function() {" +
 
-                    // ── Inject once per page ─────────────────────────────────
-                    "  if (document.getElementById('__nene_custom_css__')) {" +
-                    "    fixAll(); return;" +
-                    "  }" +
-
-                    "  var style = document.createElement('style');" +
-                    "  style.id = '__nene_custom_css__';" +
-                    "  style.textContent = '" +
-                    // Space at the bottom so the last content on the page never
-                    // sits tight against the Home/Favourites/Messages/Account bar
+                    // ── CSS: inject once per page (fast-path: re-run fixAll if already injected) ──
+                    "  var existingStyle = document.getElementById('__nene_custom_css__');" +
+                    "  if (!existingStyle) {" +
+                    "    var style = document.createElement('style');" +
+                    "    style.id = '__nene_custom_css__';" +
+                    "    style.textContent = '" +
+                    // Padding so content never hides behind the bottom nav bar
                     "    body, html { padding-bottom: 100px !important; margin-bottom: 0 !important; } " +
                     "    main, #main, .main, [class*=\"page-wrap\"]," +
                     "    [class*=\"page-content\"], .container, .container-fluid" +
                     "    { margin-bottom: 100px !important; } " +
+                    // CSS-level hide for the black footer — instant, before JS runs
+                    "    footer, #footer, .footer, [class*=\"footer\"], [id*=\"footer\"]," +
+                    "    #bottom, .bottom-section, [class*=\"bottom-bar\"]," +
+                    "    .app-links, [class*=\"app-link\"], [class*=\"store-btn\"]" +
+                    "    { display: none !important; visibility: hidden !important; height: 0 !important;" +
+                    "      overflow: hidden !important; pointer-events: none !important; } " +
                     "  ';" +
-                    "  document.head.appendChild(style);" +
+                    "    document.head.appendChild(style);" +
+                    "  }" +
 
-                    "  function removeFooters() {" +
+                    "  function fixAll() {" +
 
                     // ── 1. Remove by tag / class / id ──────────────────────────
                     "    var sel = 'footer, #footer, .footer, [class*=\"footer\"], [id*=\"footer\"]," +
@@ -148,42 +152,43 @@ public class MainActivity extends BridgeActivity {
                     "      if (p && p.children && p.children.length === 0) p.remove();" +
                     "    });" +
 
-                    // ── 3. Remove by footer keyword text — single strong hit ────
-                    "    var strongKw = ['quick links','all rights reserved','privacy policy'," +
+                    // ── 3. Remove by footer keyword text ──────────────────────
+                    // Single strong keyword → remove element if it is a sizeable block
+                    "    var strongKw = ['all rights reserved','privacy policy'," +
                     "                    'terms & conditions','terms and conditions'," +
                     "                    'cookie policy','billing policy','we are hiring'," +
-                    "                    'download our app','follow us on'];" +
+                    "                    'download our app','follow us on','quick links'];" +
+                    // Two or more of these → also remove
                     "    var multiKw  = ['about us','about nenemarket','google play','app store'," +
-                    "                    'copyright','nenemarket. all rights'];" +
+                    "                    'copyright','nenemarket. all rights','nenemarket.ng'];" +
                     "    document.querySelectorAll('footer, section, div, nav, aside, ul').forEach(function(el) {" +
                     "      if (!el.parentNode) return;" +
                     "      var txt = (el.innerText || '').toLowerCase().trim();" +
                     "      if (!txt) return;" +
-                    // single strong keyword → kill it if it is a sizeable block
-                    "      for (var i=0; i<strongKw.length; i++) {" +
-                    "        if (txt.indexOf(strongKw[i]) !== -1 && el.clientHeight > 30) {" +
+                    "      for (var i = 0; i < strongKw.length; i++) {" +
+                    "        if (txt.indexOf(strongKw[i]) !== -1 && el.clientHeight > 20) {" +
                     "          el.remove(); return;" +
                     "        }" +
                     "      }" +
-                    // two or more multi-keywords → kill it
                     "      var hits = 0;" +
-                    "      multiKw.forEach(function(kw){ if(txt.indexOf(kw) !== -1) hits++; });" +
-                    "      if (hits >= 2 && el.clientHeight > 40) el.remove();" +
+                    "      multiKw.forEach(function(kw){ if (txt.indexOf(kw) !== -1) hits++; });" +
+                    "      if (hits >= 2 && el.clientHeight > 30) { el.remove(); return; }" +
                     "    });" +
 
-                    // ── 4. Remove dark-background sections ────────────────────
-                    "    document.querySelectorAll('section, div, nav, aside').forEach(function(el) {" +
+                    // ── 4. Remove dark/black background sections ──────────────
+                    "    document.querySelectorAll('section, div, nav, aside, footer').forEach(function(el) {" +
                     "      if (!el.parentNode) return;" +
                     "      var bg = window.getComputedStyle(el).backgroundColor;" +
                     "      var m = bg.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?/);" +
                     "      if (!m) return;" +
                     "      var a = m[4] !== undefined ? parseFloat(m[4]) : 1;" +
                     "      if (a < 0.5) return;" +
-                    "      var bright = (+m[1]*299 + +m[2]*587 + +m[3]*114)/1000;" +
-                    "      if (bright < 60 && el.clientHeight > 60) el.remove();" +
+                    "      var bright = (+m[1]*299 + +m[2]*587 + +m[3]*114) / 1000;" +
+                    // brightness < 60 = very dark/black; only remove sizeable blocks
+                    "      if (bright < 60 && el.clientHeight > 40) { el.remove(); return; }" +
                     "    });" +
 
-                    // ── 5. Ensure category filter bars stay visible ────────────
+                    // ── 5. Keep category / filter bars visible ─────────────────
                     "    ['.filter-bar','.filter-section','.filters','.category-filter'," +
                     "     '[class*=\"filter\"]','.brand-filter','[class*=\"subcategor\"]'].forEach(function(s){" +
                     "      try { document.querySelectorAll(s).forEach(function(el){" +
@@ -192,7 +197,7 @@ public class MainActivity extends BridgeActivity {
                     "      }); } catch(e) {}" +
                     "    });" +
 
-                    // ── 6. Fix hostingersite links ─────────────────────────────
+                    // ── 6. Fix any stale hostingersite links ───────────────────
                     "    document.querySelectorAll('a[href]').forEach(function(a) {" +
                     "      var h = a.getAttribute('href') || '';" +
                     "      if (h.indexOf('hostingersite.com') !== -1 || h.indexOf('darkgreen-goshawk') !== -1) {" +
@@ -201,17 +206,18 @@ public class MainActivity extends BridgeActivity {
                     "    });" +
                     "  }" +
 
-                    // ── MutationObserver: kill footer as soon as it appears ────
+                    // ── MutationObserver: re-run fixAll whenever the DOM changes ─
                     "  if (!window.__neneObserver) {" +
-                    "    window.__neneObserver = new MutationObserver(function(){ removeFooters(); });" +
+                    "    window.__neneObserver = new MutationObserver(function(){ fixAll(); });" +
                     "    window.__neneObserver.observe(document.body, { childList: true, subtree: true });" +
                     "  }" +
 
+                    // Run immediately and at staggered intervals to catch late-rendered content
                     "  fixAll();" +
-                    "  setTimeout(fixAll, 800);" +
-                    "  setTimeout(fixAll, 2000);" +
-                    "  setTimeout(fixAll, 4000);" +
-                    "  setTimeout(fixAll, 7000);" +
+                    "  setTimeout(fixAll, 500);" +
+                    "  setTimeout(fixAll, 1500);" +
+                    "  setTimeout(fixAll, 3000);" +
+                    "  setTimeout(fixAll, 6000);" +
 
                     "})();";
 
