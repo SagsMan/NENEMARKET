@@ -175,20 +175,7 @@ public class MainActivity extends BridgeActivity {
                     "      if (hits >= 2 && el.clientHeight > 30) { el.remove(); return; }" +
                     "    });" +
 
-                    // ── 4. Remove dark/black background sections ──────────────
-                    "    document.querySelectorAll('section, div, nav, aside, footer').forEach(function(el) {" +
-                    "      if (!el.parentNode) return;" +
-                    "      var bg = window.getComputedStyle(el).backgroundColor;" +
-                    "      var m = bg.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?/);" +
-                    "      if (!m) return;" +
-                    "      var a = m[4] !== undefined ? parseFloat(m[4]) : 1;" +
-                    "      if (a < 0.5) return;" +
-                    "      var bright = (+m[1]*299 + +m[2]*587 + +m[3]*114) / 1000;" +
-                    // brightness < 60 = very dark/black; only remove sizeable blocks
-                    "      if (bright < 60 && el.clientHeight > 40) { el.remove(); return; }" +
-                    "    });" +
-
-                    // ── 5. Keep category / filter bars visible ─────────────────
+                    // ── 4. Keep category / filter bars visible ─────────────────
                     "    ['.filter-bar','.filter-section','.filters','.category-filter'," +
                     "     '[class*=\"filter\"]','.brand-filter','[class*=\"subcategor\"]'].forEach(function(s){" +
                     "      try { document.querySelectorAll(s).forEach(function(el){" +
