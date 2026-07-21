@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1024206594199",
+    "project_id": "vtu-apps-5c6af",
+    "storage_bucket": "vtu-apps-5c6af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1024206594199:android:4524c8856147064e9c09d2",
+        "android_client_info": {
+          "package_name": "ng.nenemarket.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArAWEFA2XZ-8tuwXJIduxwcZK_OBH9LCE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
